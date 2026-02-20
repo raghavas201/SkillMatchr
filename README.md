@@ -1,19 +1,130 @@
-# AI Resume Analyzer — Intelligent Hiring Portal
+# 🧠 AI Resume Analyzer — Intelligent Hiring Portal
 
-> **Phase 1 complete.** Full-stack project with Docker Compose, Google OAuth 2.0, JWT sessions, PostgreSQL schema, and a premium Next.js dashboard.
+> 🚀 End-to-End AI Recruitment Platform  
+> Analyze resumes, match them with job descriptions, detect skill gaps, rank candidates, and generate hiring insights using NLP and machine learning.  
+> Built with a Dockerized microservice architecture for scalability and privacy.
 
-## Tech Stack
+---
 
-| Layer       | Technology |
-|-------------|------------|
-| Frontend    | Next.js 14, Tailwind CSS, ShadCN/Radix, Recharts, Axios |
-| Backend     | Node.js 20, Express, Passport.js, JWT, Multer, Joi, pg |
-| ML Service  | Python 3.11, FastAPI, spaCy, NLTK, scikit-learn, TF-IDF |
-| Database    | PostgreSQL 16 |
-| Storage     | AWS S3 (Phase 2) |
-| DevOps      | Docker + Docker Compose |
+# ✨ Features
 
-## Quick Start
+## 🔐 Authentication & User Management
+- Google OAuth 2.0 login
+- Secure JWT sessions (HttpOnly cookies)
+- User dashboard with resume & analysis history
+- Resume privacy controls
+
+## 📄 Resume Processing
+- Upload resumes (PDF / DOCX)
+- Automatic text extraction
+- Resume section detection (Skills, Experience, Education, Projects)
+- Experience timeline extraction
+- Multiple resume versions per user
+
+## 🤖 Core AI Resume Analysis
+- Resume quality score (0–100)
+- Resume strength classification (Strong / Average / Weak)
+- Grammar & readability analysis
+- Action verb detection
+- Achievement quantification detection
+- ATS compatibility scoring
+- Section-wise scoring
+
+## 🧠 Skill Intelligence
+- NLP-based skill extraction
+- Skill proficiency estimation
+- Skill gap analysis
+- Missing skill recommendations
+
+## 🎯 Keyword Scanner
+- Custom keyword search
+- Keyword coverage percentage
+- Color-coded match results
+- Keyword importance detection
+
+## 🧠 Job Description Matching
+- Upload or paste job description
+- Semantic similarity scoring (TF-IDF + cosine similarity)
+- Match percentage calculation
+- Suitability classification
+- Keyword overlap analysis
+- Explainable AI insights
+
+## 📊 Candidate Evaluation AI
+- Candidate ranking algorithm
+- Hiring probability score
+- Experience level detection
+- Resume anomaly detection
+
+## 💡 Recommendation & Optimization Engine
+- Personalized improvement suggestions
+- Resume rewriting suggestions
+- Section-specific feedback
+- Role-based optimization tips
+
+## 🧠 Role & Career Intelligence
+- Role prediction model
+- Career path prediction
+- Resume similarity search
+- Personalized learning recommendations
+
+## 🎤 Interview Preparation AI
+- Interview question generation based on skills
+- Skill-based interview topics
+- Difficulty categorization
+
+## 📈 Analytics & Dashboard
+- Resume score history
+- JD match history
+- Skill improvement tracking
+- Visual analytics charts
+- Downloadable reports
+
+## 🗂️ Recruiter Mode
+- Upload multiple candidate resumes
+- Rank candidates by JD match
+- Filter candidates by skills
+- Candidate comparison dashboard
+
+## ⚙️ System Highlights
+- Dockerized microservice architecture
+- Local ML models (privacy-focused)
+- RESTful APIs
+- Secure file storage
+- Scalable backend
+
+---
+
+# 🧰 Tech Stack
+
+| Layer | Technology |
+|------|-----------|
+| Frontend | Next.js 14, Tailwind CSS, ShadCN/Radix, Recharts, Axios |
+| Backend | Node.js 20, Express, Passport.js, JWT, Multer, Joi, pg |
+| ML Service | Python 3.11, FastAPI, spaCy, NLTK, scikit-learn, TF-IDF |
+| Database | PostgreSQL 16 |
+| Storage | AWS S3 (optional production) |
+| DevOps | Docker + Docker Compose |
+
+---
+
+# 🧠 AI & ML Techniques
+
+- Named Entity Recognition → skill extraction  
+- Text classification → resume strength & role prediction  
+- TF-IDF + cosine similarity → JD matching  
+- Rule-based NLP → suggestions & scoring  
+- Ranking algorithms → candidate ranking  
+- Anomaly detection → suspicious resumes  
+
+---
+
+# 🚀 Quick Start
+
+## 1️⃣ Clone the repository
+```bash
+git clone https://github.com/your-username/ai-resume-analyzer.git
+cd ai-resume-analyzer
 
 ### 1. Set up environment variables
 
@@ -113,13 +224,11 @@ ai-resume-analyzer/
     └── Dockerfile
 ```
 
-## Auth Flow
+## 📜 License
 
-```
-Browser → GET /auth/google (backend)
-       → Google consent screen
-       → GET /auth/google/callback
-       → JWT issued as HttpOnly cookie
-       → Redirect → /dashboard (frontend)
-```
+MIT License © 2026 Raghava Srivastava
+
+Permission is hereby granted, free of charge, to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of this software, provided the above copyright notice and this permission notice are included.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
 
