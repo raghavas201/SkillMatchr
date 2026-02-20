@@ -123,11 +123,3 @@ Browser → GET /auth/google (backend)
        → Redirect → /dashboard (frontend)
 ```
 
-## Phases Roadmap
-
-| Phase | Status | Description |
-|-------|--------|-------------|
-| 1 | ✅ Complete | Foundation, Auth, Dashboard |
-| 2 | 🔜 Next | Resume upload (S3 + Multer), full NLP pipeline |
-| 3 | ⏳ Planned | JD matching, TF-IDF, hiring probability, Recharts |
-| 4 | ⏳ Planned | Recruiter mode, interview AI, deployment |
