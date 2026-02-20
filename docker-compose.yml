@@ -19,7 +19,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -47,6 +47,8 @@ services:
       AWS_REGION: ${AWS_REGION:-us-east-1}
       AWS_S3_BUCKET: ${AWS_S3_BUCKET:-}
       ML_SERVICE_URL: http://ml-service:${ML_PORT:-8000}
+      USE_LOCAL_STORAGE: ${USE_LOCAL_STORAGE:-true}
+      BACKEND_INTERNAL_URL: http://backend:${BACKEND_PORT:-4000}
     ports:
       - "${BACKEND_PORT:-4000}:${BACKEND_PORT:-4000}"
     depends_on:
@@ -57,6 +59,7 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
+      - uploads_data:/app/uploads
     restart: unless-stopped
 
   # ──────────────────────────────────────────
@@ -69,10 +72,18 @@ services:
     container_name: resume_ml
     environment:
       ML_PORT: ${ML_PORT:-8000}
+      USE_LOCAL_STORAGE: ${USE_LOCAL_STORAGE:-true}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      BACKEND_INTERNAL_URL: http://backend:${BACKEND_PORT:-4000}
     ports:
       - "${ML_PORT:-8000}:${ML_PORT:-8000}"
     networks:
       - app-network
+    volumes:
+      - uploads_data:/app/uploads
     restart: unless-stopped
 
   # ──────────────────────────────────────────
@@ -96,6 +107,8 @@ services:
 
 volumes:
   postgres_data:
+  uploads_data:
+
 
 networks:
   app-network:

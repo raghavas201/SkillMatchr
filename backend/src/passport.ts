@@ -4,8 +4,8 @@ import {
     Profile,
     VerifyCallback,
 } from 'passport-google-oauth20';
-import { config } from '../config';
-import { query } from '../db';
+import { config } from './config';
+import { query } from './db';
 
 interface UserRow {
     id: string;

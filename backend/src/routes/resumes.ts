@@ -45,7 +45,7 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
     const result = await query(
         `SELECT r.id, r.original_name, r.file_type, r.file_size, r.status,
             r.uploaded_at, r.s3_key,
-            a.ats_score, a.quality_score, a.strength, a.extracted_skills
+            a.ats_score, a.quality_score, a.strength, a.extracted_skills, a.role_prediction
      FROM resumes r
      LEFT JOIN analyses a ON a.resume_id = r.id
      WHERE r.user_id = $1 ${statusFilter}
@@ -145,6 +145,8 @@ router.post('/:id/analysis', async (req: Request, res: Response) => {
         grammar_issues,
         keyword_matches,
         raw_result,
+        role_prediction,
+        anomalies,
         error,
     } = req.body as {
         ats_score?: number;
@@ -154,6 +156,8 @@ router.post('/:id/analysis', async (req: Request, res: Response) => {
         grammar_issues?: object[];
         keyword_matches?: object;
         raw_result?: object;
+        role_prediction?: object;
+        anomalies?: string[];
         error?: string;
     };
 
@@ -169,8 +173,8 @@ router.post('/:id/analysis', async (req: Request, res: Response) => {
     // Write analysis result
     await query(
         `INSERT INTO analyses
-       (resume_id, ats_score, quality_score, strength, extracted_skills, grammar_issues, keyword_matches, raw_result)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+       (resume_id, ats_score, quality_score, strength, extracted_skills, grammar_issues, keyword_matches, raw_result, role_prediction, anomalies)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
         [
             id,
             ats_score,
@@ -180,6 +184,8 @@ router.post('/:id/analysis', async (req: Request, res: Response) => {
             JSON.stringify(grammar_issues ?? []),
             JSON.stringify(keyword_matches ?? {}),
             JSON.stringify(raw_result ?? {}),
+            JSON.stringify(role_prediction ?? {}),
+            JSON.stringify(anomalies ?? []),
         ]
     );
 

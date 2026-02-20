@@ -49,6 +49,8 @@ CREATE TABLE IF NOT EXISTS analyses (
   grammar_issues    JSONB       DEFAULT '[]',
   keyword_matches   JSONB       DEFAULT '{}',
   raw_result        JSONB       DEFAULT '{}',
+  role_prediction   JSONB       DEFAULT '{}',
+  anomalies         JSONB       DEFAULT '[]',
   created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -76,7 +78,10 @@ CREATE TABLE IF NOT EXISTS jd_matches (
   skill_gaps          JSONB       DEFAULT '[]',
   matched_keywords    JSONB       DEFAULT '[]',
   rank                INTEGER,
-  created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  role_prediction     JSONB       DEFAULT '{}',
+  anomalies           JSONB       DEFAULT '[]',
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (resume_id, jd_id)
 );
 
 -- ──────────────────────────────────────────────────────────────

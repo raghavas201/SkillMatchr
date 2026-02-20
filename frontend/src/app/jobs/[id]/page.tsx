@@ -38,6 +38,11 @@ interface Match {
     quality_score: number;
     strength: string;
     rank: number;
+<<<<<<< HEAD
+=======
+    role_prediction?: any;
+    anomalies?: string[] | string;
+>>>>>>> 00d4f48 (Today's final commit)
 }
 
 function ProbabilityBar({ value }: { value: number }) {
@@ -261,6 +266,36 @@ export default function JobDetailPage() {
                                                         </div>
                                                     </div>
 
+<<<<<<< HEAD
+=======
+                                                    {m.role_prediction && (() => {
+                                                        const p = typeof m.role_prediction === 'string' ? parseJSON<any>(m.role_prediction) : m.role_prediction;
+                                                        const roleStr = p?.role || (typeof m.role_prediction === 'string' ? m.role_prediction : 'Unknown Role');
+                                                        if (!roleStr || roleStr === '[]') return null;
+                                                        return (
+                                                            <div className="mt-2">
+                                                                <span className="inline-flex items-center gap-1 rounded-full border border-violet-500/30 bg-violet-500/10 px-2 py-0.5 text-[10px] font-semibold text-violet-400">
+                                                                    <Briefcase size={10} /> {roleStr}
+                                                                </span>
+                                                            </div>
+                                                        );
+                                                    })()}
+
+                                                    {/* Anomalies */}
+                                                    {m.anomalies && parseJSON<string>(m.anomalies).length > 0 && (
+                                                        <div className="mt-2 rounded-lg border border-amber-500/20 bg-amber-500/5 p-2">
+                                                            <p className="text-[10px] text-amber-500 font-semibold mb-1 flex items-center gap-1">
+                                                                <AlertTriangle size={10} /> Potential Issues
+                                                            </p>
+                                                            <ul className="list-disc list-inside text-[10px] text-amber-500/80">
+                                                                {parseJSON<string>(m.anomalies).map((anomaly, idx) => (
+                                                                    <li key={idx}>{anomaly}</li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+
+>>>>>>> 00d4f48 (Today's final commit)
                                                     {/* Probability bar */}
                                                     <div className="mt-2">
                                                         <p className="text-[10px] text-muted-foreground mb-1">Hiring Probability</p>

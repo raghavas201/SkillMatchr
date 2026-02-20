@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import {
     ArrowLeft, CheckCircle, AlertCircle, ChevronDown, ChevronUp,
-    Loader2, Download, FileText,
+    Loader2, Download, FileText, Briefcase, AlertTriangle,
 } from "lucide-react";
 
 interface ResumeDetail {
@@ -42,6 +42,8 @@ interface Analysis {
     sections_detected: string[];
     word_count: number;
     insights: string[];
+    role_prediction?: { role: string; confidence: string; alternatives: string[] };
+    anomalies?: string[];
 }
 
 // ── Score Gauge (SVG circular progress) ──────────────────────
@@ -177,10 +179,15 @@ export default function ResumeDetailPage() {
                             </div>
                             <div>
                                 <h1 className="text-xl font-bold text-foreground">{resume.original_name}</h1>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-xs text-muted-foreground mt-1">
                                     Uploaded {formatDate(resume.uploaded_at)}
                                     {analysis?.word_count ? ` · ${analysis.word_count} words` : ""}
                                 </p>
+                                {analysis?.role_prediction && (
+                                    <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-violet-500/30 bg-violet-500/10 px-2.5 py-0.5 text-xs font-semibold text-violet-400">
+                                        <Briefcase size={12} /> {analysis.role_prediction.role}
+                                    </div>
+                                )}
                             </div>
                         </div>
                         {resume.download_url && (
@@ -217,6 +224,20 @@ export default function ResumeDetailPage() {
                 {/* Analysis results */}
                 {analysis && (
                     <div className="space-y-6 animate-fade-in">
+                        {/* Anomalies */}
+                        {analysis.anomalies && analysis.anomalies.length > 0 && (
+                            <div className="glass rounded-2xl p-5 border border-amber-500/30 bg-amber-500/5 mb-6">
+                                <h2 className="text-sm font-semibold text-amber-500 mb-2 flex items-center gap-2">
+                                    <AlertTriangle size={16} /> Potential Issues Detected
+                                </h2>
+                                <ul className="list-disc list-inside space-y-1 text-xs text-amber-500/80">
+                                    {analysis.anomalies.map((anomaly, i) => (
+                                        <li key={i}>{anomaly}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
                         {/* Score gauges */}
                         <div className="glass rounded-2xl p-6">
                             <h2 className="text-base font-semibold text-foreground mb-6">Score Overview</h2>

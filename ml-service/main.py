@@ -192,9 +192,13 @@ async def run_match_pipeline(
                 "matched_keywords":  match_result["matched_keywords"],
                 "skill_gaps":        match_result["skill_gaps"],
                 "explanation":       prob_result["explanation"],
+<<<<<<< HEAD
                 "role_prediction":   role_info["role"],
                 "role_confidence":   role_info["confidence"],
                 "role_alternatives": role_info["alternatives"],
+=======
+                "role_prediction":   role_info,
+>>>>>>> 00d4f48 (Today's final commit)
                 "anomalies":         anomalies,
             })
 
