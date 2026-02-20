@@ -12,6 +12,7 @@ import { errorHandler } from './middleware/errorHandler';
 import healthRouter from './routes/health';
 import authRouter from './routes/auth';
 import resumesRouter from './routes/resumes';
+import jobsRouter from './routes/jobs';
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use(passport.initialize());
 app.use('/api/health', healthRouter);
 app.use('/auth', authRouter);
 app.use('/api/resumes', resumesRouter);
+app.use('/api/jobs', jobsRouter);
 
 // 404
 app.use((_req, res) => {
