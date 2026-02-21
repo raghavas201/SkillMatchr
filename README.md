@@ -6,6 +6,18 @@
 
 ---
 
+## 📸 Platform Previews
+
+### User Dashboard & Analytics
+![Dashboard](docs/images/dashboard.png)
+<br/>
+![Analytics](docs/images/analytics.png)
+
+### Deep AI Resume Analysis
+![Resume Detail Analysis](docs/images/resume_detail.png)
+
+---
+
 # ✨ Features
 
 ## 🔐 Authentication & User Management
