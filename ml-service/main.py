@@ -24,6 +24,8 @@ from matcher import match_resume_to_jd
 from hiring_probability import compute_hiring_probability
 from role_predictor import predict_role
 from anomaly import detect_anomalies
+from interview import generate_interview_questions
+from recommendations import get_learning_recommendations
 
 app = FastAPI(
     title="AI Resume Analyzer — ML Service",
@@ -192,13 +194,7 @@ async def run_match_pipeline(
                 "matched_keywords":  match_result["matched_keywords"],
                 "skill_gaps":        match_result["skill_gaps"],
                 "explanation":       prob_result["explanation"],
-<<<<<<< HEAD
-                "role_prediction":   role_info["role"],
-                "role_confidence":   role_info["confidence"],
-                "role_alternatives": role_info["alternatives"],
-=======
                 "role_prediction":   role_info,
->>>>>>> 00d4f48 (Today's final commit)
                 "anomalies":         anomalies,
             })
 
@@ -284,3 +280,57 @@ async def predict_role_endpoint(body: Dict[str, Any]):
     skills = body.get("skills", [])
     text   = body.get("text", "")
     return predict_role(skills, text)
+
+
+@app.post("/keyword-scan")
+async def keyword_scan(body: Dict[str, Any]):
+    """
+    POST { text: str, keywords: list[str] }
+    Returns keyword coverage stats and color-coded match results.
+    """
+    text = body.get("text", "")
+    keywords = body.get("keywords", [])
+    if not text or not keywords:
+        raise HTTPException(400, "text and keywords are required")
+
+    text_lower = text.lower()
+    matched, missing = [], []
+    for kw in keywords:
+        if kw.lower() in text_lower:
+            matched.append(kw)
+        else:
+            missing.append(kw)
+
+    coverage = round(len(matched) / max(len(keywords), 1) * 100, 2)
+    return {
+        "total": len(keywords),
+        "matched_count": len(matched),
+        "missing_count": len(missing),
+        "coverage_pct": coverage,
+        "matched": matched,
+        "missing": missing,
+    }
+
+
+@app.post("/interview-questions")
+async def interview_questions(body: Dict[str, Any]):
+    """
+    POST { skills: list[str], role?: str }
+    Returns categorised interview questions (behavioral / technical / role-specific).
+    """
+    skills = body.get("skills", [])
+    role   = body.get("role", "")
+    if not skills:
+        raise HTTPException(400, "skills list is required")
+    return generate_interview_questions(skills, role)
+
+
+@app.post("/learning-recommendations")
+async def learning_recommendations(body: Dict[str, Any]):
+    """
+    POST { skill_gaps: list[str], role?: str }
+    Returns learning resources mapped to each skill gap.
+    """
+    skill_gaps = body.get("skill_gaps", [])
+    role       = body.get("role", "")
+    return get_learning_recommendations(skill_gaps, role)

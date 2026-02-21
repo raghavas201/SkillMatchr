@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
@@ -9,6 +9,18 @@ export default function LoginPage() {
     const router = useRouter();
     const backendUrl =
         process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+
+    const [oauthError, setOauthError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get("error") === "oauth_failed") {
+                setOauthError("Google sign-in failed. Please try again or check that Google OAuth credentials are configured.");
+                window.history.replaceState({}, "", "/");
+            }
+        }
+    }, []);
 
     useEffect(() => {
         if (!loading && user) {
@@ -84,6 +96,13 @@ export default function LoginPage() {
                         ))}
                     </ul>
 
+                    {/* OAuth error banner */}
+                    {oauthError && (
+                        <div className="mb-4 rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-xs text-red-400">
+                            {oauthError}
+                        </div>
+                    )}
+
                     {/* Google Sign-In */}
                     <a
                         href={`${backendUrl}/auth/google`}
@@ -114,6 +133,6 @@ export default function LoginPage() {
                     AI Resume Analyzer © {new Date().getFullYear()}
                 </p>
             </div>
-        </main>
+        </main >
     );
 }

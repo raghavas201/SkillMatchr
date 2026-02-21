@@ -8,12 +8,13 @@ import Navbar from "@/components/Navbar";
 import { useAnalysis } from "@/hooks/useAnalysis";
 import api from "@/lib/axios";
 import { formatDate, getScoreColor, getStrengthColor, cn } from "@/lib/utils";
-import {
-    RadialBarChart, RadialBar, ResponsiveContainer, PolarAngleAxis,
-} from "recharts";
+import dynamic from "next/dynamic";
+
+const ScoreGauge = dynamic(() => import("@/components/ScoreGauge"), { ssr: false, loading: () => <div className="h-32 w-32 animate-pulse rounded-full bg-secondary/30" /> });
 import {
     ArrowLeft, CheckCircle, AlertCircle, ChevronDown, ChevronUp,
-    Loader2, Download, FileText, Briefcase, AlertTriangle,
+    Loader2, Download, FileText, Briefcase, AlertTriangle, Search,
+    MessageSquare, BookOpen, ChevronRight,
 } from "lucide-react";
 
 interface ResumeDetail {
@@ -46,36 +47,7 @@ interface Analysis {
     anomalies?: string[];
 }
 
-// ── Score Gauge (SVG circular progress) ──────────────────────
-function ScoreGauge({
-    score, label, color,
-}: { score: number; label: string; color: string }) {
-    const data = [{ value: score, fill: color }];
-    return (
-        <div className="flex flex-col items-center gap-2">
-            <div className="relative h-28 w-28">
-                <ResponsiveContainer width="100%" height="100%">
-                    <RadialBarChart
-                        cx="50%" cy="50%"
-                        innerRadius="70%" outerRadius="100%"
-                        startAngle={90} endAngle={-270}
-                        data={data}
-                    >
-                        <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-                        <RadialBar background={{ fill: "rgba(255,255,255,0.05)" }} dataKey="value" />
-                    </RadialBarChart>
-                </ResponsiveContainer>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className={`text-2xl font-bold ${color === "#34d399" ? "text-emerald-400" : "text-blue-400"}`}>
-                        {score.toFixed(0)}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground">/100</span>
-                </div>
-            </div>
-            <p className="text-xs font-medium text-muted-foreground">{label}</p>
-        </div>
-    );
-}
+
 
 // ── Grammar issue accordion ───────────────────────────────────
 function GrammarIssue({ issue }: { issue: Analysis["grammar_issues"][0] }) {
@@ -124,7 +96,48 @@ export default function ResumeDetailPage() {
     const [analysis, setAnalysis] = useState<Analysis | null>(null);
     const [loadingPage, setLoadingPage] = useState(true);
 
-    // Poll until done
+    // ── Keyword Scanner ───────────────────────────────────────────
+    const [kwInput, setKwInput] = useState("");
+    const [kwResult, setKwResult] = useState<{
+        total: number; matched_count: number; missing_count: number;
+        coverage_pct: number; matched: string[]; missing: string[];
+    } | null>(null);
+    const [kwLoading, setKwLoading] = useState(false);
+    const [kwError, setKwError] = useState("");
+
+    // ── Interview Prep ────────────────────────────────────────────
+    const [interviewData, setInterviewData] = useState<{
+        behavioral: string[];
+        technical: { easy: string[]; medium: string[]; hard: string[] };
+        role_specific: string[];
+        total: number;
+    } | null>(null);
+    const [interviewLoading, setInterviewLoading] = useState(false);
+    const [openSection, setOpenSection] = useState<string | null>(null);
+
+    const handleKeywordScan = async () => {
+        const keywords = kwInput.split(/[,\n]+/).map((k: string) => k.trim()).filter(Boolean);
+        if (keywords.length === 0) return;
+        setKwLoading(true);
+        setKwError("");
+        try {
+            const res = await api.post(`/api/resumes/${resumeId}/keyword-scan`, { keywords });
+            setKwResult(res.data);
+        } catch {
+            setKwError("Could not run keyword scan. Make sure the resume has been analyzed.");
+        } finally { setKwLoading(false); }
+    };
+
+    const handleInterviewQuestions = async () => {
+        if (interviewData) { setInterviewData(null); return; }
+        setInterviewLoading(true);
+        try {
+            const res = await api.get(`/api/resumes/${resumeId}/interview-questions`);
+            setInterviewData(res.data);
+        } catch {/**/ } finally { setInterviewLoading(false); }
+    };
+
+
     const { data: polled } = useAnalysis(
         resume?.status && !["done", "error"].includes(resume.status) ? resumeId : null
     );
@@ -298,7 +311,114 @@ export default function ResumeDetailPage() {
                             </div>
                         )}
 
-                        {/* Grammar issues */}
+                        {/* ── Keyword Scanner ─────────────────────────── */}
+                        <div className="glass rounded-2xl p-6">
+                            <h2 className="text-base font-semibold text-foreground mb-1 flex items-center gap-2">
+                                <Search size={16} className="text-primary" /> Keyword Scanner
+                            </h2>
+                            <p className="text-xs text-muted-foreground mb-4">Paste keywords from a job description (comma or newline separated) to see how many appear in this resume.</p>
+                            <div className="flex gap-2">
+                                <textarea
+                                    value={kwInput}
+                                    onChange={e => setKwInput(e.target.value)}
+                                    placeholder="Python, React, AWS, REST API, CI/CD…"
+                                    rows={2}
+                                    className="flex-1 resize-none rounded-xl border border-border bg-secondary/50 px-3 py-2 text-xs text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                                />
+                                <button
+                                    onClick={handleKeywordScan}
+                                    disabled={kwLoading}
+                                    className="self-end flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-violet-600 px-4 py-2.5 text-xs font-semibold text-white hover:-translate-y-0.5 transition-transform disabled:opacity-50"
+                                >
+                                    {kwLoading ? <Loader2 size={12} className="animate-spin" /> : <Search size={12} />}
+                                    Scan
+                                </button>
+                            </div>
+
+                            {kwError && <p className="mt-2 text-xs text-destructive">{kwError}</p>}
+
+                            {kwResult && (
+                                <div className="mt-4 space-y-3">
+                                    {/* Coverage bar */}
+                                    <div className="flex items-center justify-between text-xs mb-1">
+                                        <span className="text-muted-foreground">Coverage</span>
+                                        <span className={`font-bold ${kwResult.coverage_pct >= 70 ? "text-emerald-400" : kwResult.coverage_pct >= 40 ? "text-amber-400" : "text-red-400"}`}>
+                                            {kwResult.coverage_pct}% ({kwResult.matched_count}/{kwResult.total})
+                                        </span>
+                                    </div>
+                                    <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
+                                        <div className="h-full rounded-full transition-all" style={{ width: `${kwResult.coverage_pct}%`, background: kwResult.coverage_pct >= 70 ? "#34d399" : kwResult.coverage_pct >= 40 ? "#fbbf24" : "#f87171" }} />
+                                    </div>
+                                    {/* Chips */}
+                                    <div className="flex flex-wrap gap-1.5 mt-2">
+                                        {kwResult.matched.map(kw => (
+                                            <span key={kw} className="flex items-center gap-1 rounded-full bg-emerald-400/10 border border-emerald-400/20 px-2.5 py-1 text-[11px] text-emerald-400">
+                                                <CheckCircle size={10} /> {kw}
+                                            </span>
+                                        ))}
+                                        {kwResult.missing.map(kw => (
+                                            <span key={kw} className="flex items-center gap-1 rounded-full bg-red-400/10 border border-red-400/20 px-2.5 py-1 text-[11px] text-red-400">
+                                                <AlertCircle size={10} /> {kw}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* ── Interview Prep ──────────────────────────── */}
+                        {analysis.extracted_skills.length > 0 && (
+                            <div className="glass rounded-2xl p-6">
+                                <div className="flex items-center justify-between mb-1">
+                                    <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+                                        <MessageSquare size={16} className="text-primary" /> Interview Prep
+                                    </h2>
+                                    <button
+                                        onClick={handleInterviewQuestions}
+                                        disabled={interviewLoading}
+                                        className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-blue-600 px-3 py-2 text-xs font-semibold text-white hover:-translate-y-0.5 transition-transform disabled:opacity-50"
+                                    >
+                                        {interviewLoading ? <Loader2 size={12} className="animate-spin" /> : <BookOpen size={12} />}
+                                        {interviewData ? "Hide Questions" : "Generate Questions"}
+                                    </button>
+                                </div>
+                                <p className="text-xs text-muted-foreground mb-4">AI-generated interview questions based on your detected skills and predicted role.</p>
+
+                                {interviewData && (
+                                    <div className="space-y-2 mt-2">
+                                        {[
+                                            { key: "behavioral", label: "🧠 Behavioral", questions: interviewData.behavioral },
+                                            { key: "easy", label: "✅ Technical — Easy", questions: interviewData.technical.easy },
+                                            { key: "medium", label: "⚡ Technical — Medium", questions: interviewData.technical.medium },
+                                            { key: "hard", label: "🔥 Technical — Hard", questions: interviewData.technical.hard },
+                                            { key: "role", label: "🎯 Role-Specific", questions: interviewData.role_specific },
+                                        ].filter(s => s.questions.length > 0).map(section => (
+                                            <div key={section.key} className="rounded-xl border border-border/50 overflow-hidden">
+                                                <button
+                                                    onClick={() => setOpenSection(openSection === section.key ? null : section.key)}
+                                                    className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-foreground hover:bg-accent/50 transition-colors"
+                                                >
+                                                    <span>{section.label} <span className="text-muted-foreground text-xs">({section.questions.length})</span></span>
+                                                    {openSection === section.key ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                                </button>
+                                                {openSection === section.key && (
+                                                    <div className="px-4 pb-3 space-y-2">
+                                                        {section.questions.map((q, i) => (
+                                                            <div key={i} className="flex gap-2 text-xs text-muted-foreground">
+                                                                <span className="text-primary flex-shrink-0 font-bold"><ChevronRight size={12} className="inline" /></span>
+                                                                <p>{q}</p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* ── Grammar issues ─────────────────────────── */}
                         <div className="glass rounded-2xl p-6">
                             <h2 className="text-base font-semibold text-foreground mb-1">
                                 Grammar & Language

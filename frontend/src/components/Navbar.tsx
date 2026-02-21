@@ -10,12 +10,16 @@ import {
     ChevronDown,
     Briefcase,
     Zap,
+    BarChart2,
+    Users,
 } from "lucide-react";
 
 const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/resumes", label: "My Resumes", icon: FileText },
     { href: "/jobs", label: "Job Matches", icon: Briefcase },
+    { href: "/analytics", label: "Analytics", icon: BarChart2 },
+    { href: "/recruiter", label: "Recruiter", icon: Users },
 ];
 
 export default function Navbar() {

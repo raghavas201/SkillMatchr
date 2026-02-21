@@ -7,11 +7,14 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
 import ResumeUpload from "@/components/ResumeUpload";
-import api from "@/lib/axios";
+import api, { saveToken } from "@/lib/axios";
 import { formatDate, getStrengthColor, getScoreColor } from "@/lib/utils";
-import {
-    AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
-} from "recharts";
+import dynamic from "next/dynamic";
+
+// Recharts must NOT be imported at module level in Next.js — it accesses
+// window/document and crashes during static pre-rendering even in "use client"
+// pages. We lazy-load the chart section as a client-only component instead.
+const ResumeChart = dynamic(() => import("@/components/ResumeChart"), { ssr: false });
 import {
     FileText, TrendingUp, Award, CheckCircle, Clock,
     ArrowRight, UploadCloud, AlertCircle, Loader2, X,
@@ -64,11 +67,26 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function DashboardPage() {
-    const { user, loading: authLoading } = useAuth();
+    const { user, loading: authLoading, refresh } = useAuth();
     const router = useRouter();
     const [resumes, setResumes] = useState<Resume[]>([]);
     const [loadingData, setLoadingData] = useState(true);
     const [showUpload, setShowUpload] = useState(false);
+
+    // ── Capture JWT token passed back from Google OAuth redirect ──
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get("token");
+        if (token) {
+            saveToken(token);
+            // Clean the token from the URL without adding a history entry
+            const cleanUrl = window.location.pathname;
+            window.history.replaceState({}, "", cleanUrl);
+            // Re-fetch the authenticated user now that we have the token
+            refresh();
+        }
+    }, [refresh]);
 
     useEffect(() => {
         if (!authLoading && !user) router.replace("/");
@@ -157,21 +175,7 @@ export default function DashboardPage() {
                     {chartData.length > 1 && (
                         <div className="glass rounded-2xl p-6 lg:col-span-2">
                             <h2 className="text-sm font-semibold text-foreground mb-4">Upload Activity (last 14 days)</h2>
-                            <ResponsiveContainer width="100%" height={160}>
-                                <AreaChart data={chartData}>
-                                    <defs>
-                                        <linearGradient id="uGrad" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.3} />
-                                            <stop offset="95%" stopColor="#60a5fa" stopOpacity={0} />
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                                    <XAxis dataKey="date" tick={{ fill: "#6b7280", fontSize: 11 }} axisLine={false} tickLine={false} />
-                                    <YAxis tick={{ fill: "#6b7280", fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                                    <Tooltip contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8, fontSize: 12 }} />
-                                    <Area type="monotone" dataKey="count" stroke="#60a5fa" fill="url(#uGrad)" strokeWidth={2} dot={false} />
-                                </AreaChart>
-                            </ResponsiveContainer>
+                            <ResumeChart data={chartData} />
                         </div>
                     )}
 
@@ -200,7 +204,7 @@ export default function DashboardPage() {
                                             <p className="text-xs text-muted-foreground">{formatDate(r.uploaded_at)}</p>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            {r.ats_score !== undefined && (
+                                            {typeof r.ats_score === 'number' && !isNaN(r.ats_score) && (
                                                 <span className={`text-xs font-bold ${getScoreColor(r.ats_score)}`}>{r.ats_score.toFixed(0)}%</span>
                                             )}
                                             <StatusBadge status={r.status} />

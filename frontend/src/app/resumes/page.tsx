@@ -117,8 +117,8 @@ export default function ResumesPage() {
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
                                 className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize transition-colors ${activeTab === tab
-                                        ? "bg-primary text-primary-foreground shadow"
-                                        : "text-muted-foreground hover:text-foreground"
+                                    ? "bg-primary text-primary-foreground shadow"
+                                    : "text-muted-foreground hover:text-foreground"
                                     }`}
                             >
                                 {tab}
@@ -169,7 +169,7 @@ export default function ResumesPage() {
 
                                 {/* Scores */}
                                 <div className="hidden md:flex items-center gap-4">
-                                    {resume.ats_score !== undefined && (
+                                    {typeof resume.ats_score === 'number' && !isNaN(resume.ats_score) && (
                                         <div className="text-center">
                                             <p className={`text-sm font-bold ${getScoreColor(resume.ats_score)}`}>
                                                 {resume.ats_score.toFixed(0)}%
@@ -177,7 +177,7 @@ export default function ResumesPage() {
                                             <p className="text-[10px] text-muted-foreground">ATS</p>
                                         </div>
                                     )}
-                                    {resume.quality_score !== undefined && (
+                                    {typeof resume.quality_score === 'number' && !isNaN(resume.quality_score) && (
                                         <div className="text-center">
                                             <p className={`text-sm font-bold ${getScoreColor(resume.quality_score)}`}>
                                                 {resume.quality_score.toFixed(0)}%

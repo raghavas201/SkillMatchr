@@ -3,10 +3,12 @@ import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import fs from 'fs';
+import axios from 'axios';
 import { requireAuth } from '../middleware/auth';
 import { query } from '../db';
 import { uploadFile, deleteFile, getPresignedUrl } from '../lib/s3';
 import { triggerAnalysis } from '../lib/mlClient';
+import { config } from '../config';
 
 const router = Router();
 
@@ -215,6 +217,98 @@ router.delete('/:id', requireAuth, async (req: Request, res: Response) => {
     }
     await query('DELETE FROM resumes WHERE id = $1', [id]);
     res.json({ message: 'Resume deleted' });
+});
+
+// ──────────────────────────────────────────────────────────────
+// POST /api/resumes/:id/keyword-scan
+// ──────────────────────────────────────────────────────────────
+router.post('/:id/keyword-scan', requireAuth, async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { keywords } = req.body as { keywords: string[] };
+
+    if (!keywords || !Array.isArray(keywords) || keywords.length === 0) {
+        res.status(400).json({ error: 'keywords array is required' });
+        return;
+    }
+
+    // Fetch stored resume text from raw_result
+    const analysisResult = await query(
+        `SELECT raw_result FROM analyses WHERE resume_id = $1 ORDER BY created_at DESC LIMIT 1`,
+        [id]
+    );
+    if (analysisResult.rows.length === 0) {
+        res.status(404).json({ error: 'Analysis not found. Upload and analyze the resume first.' });
+        return;
+    }
+
+    let rawResult = analysisResult.rows[0].raw_result as Record<string, unknown>;
+    if (typeof rawResult === 'string') rawResult = JSON.parse(rawResult as string) as Record<string, unknown>;
+    const text: string = (rawResult?.text as string) ?? '';
+
+    if (!text) {
+        res.status(422).json({ error: 'No extracted text found for this resume.' });
+        return;
+    }
+
+    try {
+        const mlRes = await axios.post(
+            `${config.mlServiceUrl}/keyword-scan`,
+            { text, keywords },
+            { timeout: 10_000 }
+        );
+        res.json(mlRes.data);
+    } catch (err) {
+        console.error('[keyword-scan] ML error:', err);
+        res.status(502).json({ error: 'ML service error' });
+    }
+});
+
+// ──────────────────────────────────────────────────────────────
+// GET /api/resumes/:id/interview-questions
+// ──────────────────────────────────────────────────────────────
+router.get('/:id/interview-questions', requireAuth, async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const resumeResult = await query(
+        'SELECT id FROM resumes WHERE id = $1 AND user_id = $2',
+        [id, req.user!.id]
+    );
+    if (resumeResult.rows.length === 0) {
+        res.status(404).json({ error: 'Resume not found' });
+        return;
+    }
+
+    const analysisResult = await query(
+        `SELECT extracted_skills, role_prediction FROM analyses WHERE resume_id = $1 ORDER BY created_at DESC LIMIT 1`,
+        [id]
+    );
+    if (analysisResult.rows.length === 0) {
+        res.status(404).json({ error: 'Analysis not found. Upload and analyze the resume first.' });
+        return;
+    }
+
+    let { extracted_skills } = analysisResult.rows[0];
+    const skills: string[] = Array.isArray(extracted_skills)
+        ? extracted_skills as string[]
+        : JSON.parse(typeof extracted_skills === 'string' ? extracted_skills : '[]');
+
+    let rolePrediction = analysisResult.rows[0].role_prediction as Record<string, unknown>;
+    if (typeof rolePrediction === 'string') {
+        try { rolePrediction = JSON.parse(rolePrediction) as Record<string, unknown>; } catch { rolePrediction = {}; }
+    }
+    const role: string = (rolePrediction?.role as string) ?? '';
+
+    try {
+        const mlRes = await axios.post(
+            `${config.mlServiceUrl}/interview-questions`,
+            { skills, role },
+            { timeout: 10_000 }
+        );
+        res.json(mlRes.data);
+    } catch (err) {
+        console.error('[interview-questions] ML error:', err);
+        res.status(502).json({ error: 'ML service error' });
+    }
 });
 
 export default router;

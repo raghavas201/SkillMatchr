@@ -7,10 +7,9 @@ import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
 import api from "@/lib/axios";
 import { formatDate, getScoreColor } from "@/lib/utils";
-import {
-    RadarChart, PolarGrid, PolarAngleAxis, Radar,
-    ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell,
-} from "recharts";
+import dynamic from "next/dynamic";
+
+const JobCharts = dynamic(() => import("@/components/JobCharts"), { ssr: false });
 import {
     ArrowLeft, Briefcase, Loader2, Zap, Users,
     Target, AlertTriangle, CheckCircle, ChevronRight,
@@ -38,11 +37,8 @@ interface Match {
     quality_score: number;
     strength: string;
     rank: number;
-<<<<<<< HEAD
-=======
     role_prediction?: any;
     anomalies?: string[] | string;
->>>>>>> 00d4f48 (Today's final commit)
 }
 
 function ProbabilityBar({ value }: { value: number }) {
@@ -175,59 +171,16 @@ export default function JobDetailPage() {
                     <div className="glass rounded-2xl py-20 text-center animate-fade-in">
                         <Users className="mx-auto mb-4 h-10 w-10 text-muted-foreground/30" />
                         <p className="text-sm font-medium text-muted-foreground">No matches yet</p>
-                        <p className="mt-1 text-xs text-muted-foreground/60">Click "Re-Match" to rank your analyzed resumes against this JD</p>
+                        <p className="mt-1 text-xs text-muted-foreground/60">Click &quot;Re-Match&quot; to rank your analyzed resumes against this JD</p>
                     </div>
                 ) : (
                     <div className="space-y-6">
                         {/* Charts row */}
-                        <div className="grid gap-6 lg:grid-cols-2">
-                            {/* Bar chart — hiring probability */}
-                            {barData.length > 0 && (
-                                <div className="glass rounded-2xl p-6 animate-fade-in">
-                                    <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2"><Target size={14} className="text-primary" /> Hiring Probability</h2>
-                                    <ResponsiveContainer width="100%" height={200}>
-                                        <BarChart data={barData} layout="vertical">
-                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
-                                            <XAxis type="number" domain={[0, 100]} tick={{ fill: "#6b7280", fontSize: 10 }} tickLine={false} axisLine={false} unit="%" />
-                                            <YAxis type="category" dataKey="name" tick={{ fill: "#9ca3af", fontSize: 10 }} width={90} tickLine={false} axisLine={false} />
-                                            <Tooltip
-                                                contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 8, fontSize: 12 }}
-                                                formatter={(v) => [`${v}%`, "Hiring Probability"]}
-                                            />
-                                            <Bar dataKey="probability" radius={[0, 6, 6, 0]} maxBarSize={20}>
-                                                {barData.map((entry, i) => (
-                                                    <Cell key={i} fill={entry.probability >= 70 ? "#34d399" : entry.probability >= 50 ? "#60a5fa" : "#a78bfa"} />
-                                                ))}
-                                            </Bar>
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            )}
-
-                            {/* Radar chart — top 3 comparison */}
-                            {top3.length >= 2 && (
-                                <div className="glass rounded-2xl p-6 animate-fade-in">
-                                    <h2 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2"><Users size={14} className="text-primary" /> Top 3 Candidate Comparison</h2>
-                                    <div className="flex gap-3 mb-2">
-                                        {top3.map((m, i) => (
-                                            <div key={m.resume_id} className="flex items-center gap-1.5">
-                                                <div className="h-2 w-2 rounded-full" style={{ background: RADAR_COLORS[i] }} />
-                                                <span className="text-[10px] text-muted-foreground truncate max-w-[80px]">{m.original_name.replace(/\.(pdf|docx)$/i, "")}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <ResponsiveContainer width="100%" height={200}>
-                                        <RadarChart data={radarData}>
-                                            <PolarGrid stroke="rgba(255,255,255,0.07)" />
-                                            <PolarAngleAxis dataKey="subject" tick={{ fill: "#9ca3af", fontSize: 11 }} />
-                                            {top3.map((_, i) => (
-                                                <Radar key={i} name={`c${i}`} dataKey={`c${i}`} stroke={RADAR_COLORS[i]} fill={RADAR_COLORS[i]} fillOpacity={0.12} strokeWidth={2} />
-                                            ))}
-                                        </RadarChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            )}
-                        </div>
+                        <JobCharts
+                            barData={barData}
+                            radarData={radarData}
+                            top3Names={top3.map((m) => m.original_name.replace(/\.(pdf|docx)$/i, ""))}
+                        />
 
                         {/* Ranked candidates table */}
                         <div className="glass rounded-2xl p-6 animate-fade-in">
@@ -236,6 +189,11 @@ export default function JobDetailPage() {
                                 {matches.map((m, i) => {
                                     const keywords = parseJSON<string>(m.matched_keywords);
                                     const gaps = parseJSON<string>(m.skill_gaps);
+                                    const anomalies = parseJSON<string>(m.anomalies);
+                                    const roleObj = m.role_prediction
+                                        ? (typeof m.role_prediction === "string" ? parseJSON<any>(m.role_prediction) : m.role_prediction)
+                                        : null;
+                                    const roleStr = roleObj?.role ?? (typeof m.role_prediction === "string" ? m.role_prediction : null);
                                     return (
                                         <div key={m.resume_id}
                                             className="rounded-xl border border-border/50 bg-secondary/20 p-4 hover:bg-secondary/40 transition-colors"
@@ -266,36 +224,29 @@ export default function JobDetailPage() {
                                                         </div>
                                                     </div>
 
-<<<<<<< HEAD
-=======
-                                                    {m.role_prediction && (() => {
-                                                        const p = typeof m.role_prediction === 'string' ? parseJSON<any>(m.role_prediction) : m.role_prediction;
-                                                        const roleStr = p?.role || (typeof m.role_prediction === 'string' ? m.role_prediction : 'Unknown Role');
-                                                        if (!roleStr || roleStr === '[]') return null;
-                                                        return (
-                                                            <div className="mt-2">
-                                                                <span className="inline-flex items-center gap-1 rounded-full border border-violet-500/30 bg-violet-500/10 px-2 py-0.5 text-[10px] font-semibold text-violet-400">
-                                                                    <Briefcase size={10} /> {roleStr}
-                                                                </span>
-                                                            </div>
-                                                        );
-                                                    })()}
+                                                    {/* Role prediction badge */}
+                                                    {roleStr && roleStr !== "[]" && (
+                                                        <div className="mt-2">
+                                                            <span className="inline-flex items-center gap-1 rounded-full border border-violet-500/30 bg-violet-500/10 px-2 py-0.5 text-[10px] font-semibold text-violet-400">
+                                                                <Briefcase size={10} /> {roleStr}
+                                                            </span>
+                                                        </div>
+                                                    )}
 
                                                     {/* Anomalies */}
-                                                    {m.anomalies && parseJSON<string>(m.anomalies).length > 0 && (
+                                                    {anomalies.length > 0 && (
                                                         <div className="mt-2 rounded-lg border border-amber-500/20 bg-amber-500/5 p-2">
                                                             <p className="text-[10px] text-amber-500 font-semibold mb-1 flex items-center gap-1">
                                                                 <AlertTriangle size={10} /> Potential Issues
                                                             </p>
                                                             <ul className="list-disc list-inside text-[10px] text-amber-500/80">
-                                                                {parseJSON<string>(m.anomalies).map((anomaly, idx) => (
+                                                                {anomalies.map((anomaly, idx) => (
                                                                     <li key={idx}>{anomaly}</li>
                                                                 ))}
                                                             </ul>
                                                         </div>
                                                     )}
 
->>>>>>> 00d4f48 (Today's final commit)
                                                     {/* Probability bar */}
                                                     <div className="mt-2">
                                                         <p className="text-[10px] text-muted-foreground mb-1">Hiring Probability</p>

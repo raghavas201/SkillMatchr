@@ -8,6 +8,7 @@ import React, {
     useCallback,
 } from "react";
 import api from "@/lib/axios";
+import { clearToken } from "@/lib/axios";
 
 export interface User {
     id: string;
@@ -55,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
             await api.post("/auth/logout");
         } finally {
+            clearToken();
             setUser(null);
             window.location.href = "/";
         }

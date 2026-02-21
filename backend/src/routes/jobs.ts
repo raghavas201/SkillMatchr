@@ -135,11 +135,7 @@ router.post('/:id/match-result', async (req: Request, res: Response) => {
             matched_keywords: string[];
             skill_gaps: string[];
             rank: number;
-<<<<<<< HEAD
-            role_prediction: string;
-=======
             role_prediction: Record<string, any>;
->>>>>>> 00d4f48 (Today's final commit)
             anomalies: string[];
             explanation: Record<string, number>;
         }>;
@@ -162,24 +158,16 @@ router.post('/:id/match-result', async (req: Request, res: Response) => {
         await query(
             `INSERT INTO jd_matches
          (resume_id, jd_id, similarity_score, hiring_probability,
-<<<<<<< HEAD
-          skill_gaps, matched_keywords, rank)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-=======
           skill_gaps, matched_keywords, rank, role_prediction, anomalies)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
->>>>>>> 00d4f48 (Today's final commit)
        ON CONFLICT (resume_id, jd_id) DO UPDATE SET
          similarity_score   = EXCLUDED.similarity_score,
          hiring_probability = EXCLUDED.hiring_probability,
          skill_gaps         = EXCLUDED.skill_gaps,
          matched_keywords   = EXCLUDED.matched_keywords,
          rank               = EXCLUDED.rank,
-<<<<<<< HEAD
-=======
          role_prediction    = EXCLUDED.role_prediction,
          anomalies          = EXCLUDED.anomalies,
->>>>>>> 00d4f48 (Today's final commit)
          created_at         = NOW()`,
             [
                 m.resume_id, id,
@@ -187,11 +175,8 @@ router.post('/:id/match-result', async (req: Request, res: Response) => {
                 JSON.stringify(m.skill_gaps ?? []),
                 JSON.stringify(m.matched_keywords ?? []),
                 m.rank,
-<<<<<<< HEAD
-=======
                 JSON.stringify(m.role_prediction ?? {}),
                 JSON.stringify(m.anomalies ?? []),
->>>>>>> 00d4f48 (Today's final commit)
             ]
         );
     }

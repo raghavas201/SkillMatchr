@@ -13,6 +13,7 @@ import healthRouter from './routes/health';
 import authRouter from './routes/auth';
 import resumesRouter from './routes/resumes';
 import jobsRouter from './routes/jobs';
+import analyticsRouter from './routes/analytics';
 
 const app = express();
 
@@ -47,6 +48,7 @@ app.use('/api/health', healthRouter);
 app.use('/auth', authRouter);
 app.use('/api/resumes', resumesRouter);
 app.use('/api/jobs', jobsRouter);
+app.use('/api/analytics', analyticsRouter);
 
 // 404
 app.use((_req, res) => {
