@@ -40,7 +40,8 @@ interface Analysis {
         suggestions: string[];
         severity: string;
     }>;
-    sections_detected: string[];
+    sections_detected?: string[];
+    raw_result?: any;
     word_count: number;
     insights: string[];
     role_prediction?: { role: string; confidence: string; alternatives: string[] };
@@ -281,7 +282,8 @@ export default function ResumeDetailPage() {
                             <h2 className="text-base font-semibold text-foreground mb-4">Sections Detected</h2>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                 {["summary", "experience", "education", "skills", "projects", "certifications", "contact", "awards", "languages"].map((s) => {
-                                    const found = (analysis.sections_detected || []).includes(s);
+                                    const sectionsList = analysis.sections_detected || (analysis.raw_result?.sections ? Object.keys(analysis.raw_result.sections).filter(k => analysis.raw_result.sections[k]) : []);
+                                    const found = sectionsList.includes(s);
                                     return (
                                         <div key={s} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${found ? "bg-emerald-400/10 text-emerald-400" : "bg-secondary/30 text-muted-foreground/50"}`}>
                                             <CheckCircle size={13} className={found ? "opacity-100" : "opacity-30"} />
