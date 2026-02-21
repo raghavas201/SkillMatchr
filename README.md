@@ -123,7 +123,7 @@
 
 ## 1️⃣ Clone the repository
 ```bash
-git clone https://github.com/your-username/ai-resume-analyzer.git
+gh repo clone raghavas201/SkillMatchr
 cd ai-resume-analyzer
 
 ### 1. Set up environment variables
