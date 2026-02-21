@@ -27,7 +27,7 @@ export default function ScoreGauge({ score, label, color }: Props) {
                     </RadialBarChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className={`text-2xl font-bold ${textColor}`}>{score.toFixed(0)}</span>
+                    <span className={`text-2xl font-bold ${textColor}`}>{Number(score).toFixed(0)}</span>
                     <span className="text-[10px] text-muted-foreground">/100</span>
                 </div>
             </div>

@@ -204,8 +204,8 @@ export default function DashboardPage() {
                                             <p className="text-xs text-muted-foreground">{formatDate(r.uploaded_at)}</p>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            {typeof r.ats_score === 'number' && !isNaN(r.ats_score) && (
-                                                <span className={`text-xs font-bold ${getScoreColor(r.ats_score)}`}>{r.ats_score.toFixed(0)}%</span>
+                                            {r.ats_score != null && (
+                                                <span className={`text-xs font-bold ${getScoreColor(Number(r.ats_score))}`}>{Number(r.ats_score).toFixed(0)}%</span>
                                             )}
                                             <StatusBadge status={r.status} />
                                         </div>

@@ -273,8 +273,8 @@ export default function RecruiterPage() {
                                                                 <div>
                                                                     <p className="font-medium text-foreground text-sm">{m.original_name}</p>
                                                                     <div className="flex items-center gap-2 mt-0.5">
-                                                                        {m.ats_score !== undefined && <span className={`text-[10px] font-bold ${getScoreColor(m.ats_score)}`}>ATS {m.ats_score?.toFixed(0)}%</span>}
-                                                                        {m.quality_score !== undefined && <span className={`text-[10px] font-bold ${getScoreColor(m.quality_score)}`}>Q {m.quality_score?.toFixed(0)}%</span>}
+                                                                        {m.ats_score != null && <span className={`text-[10px] font-bold ${getScoreColor(Number(m.ats_score))}`}>ATS {Number(m.ats_score).toFixed(0)}%</span>}
+                                                                        {m.quality_score != null && <span className={`text-[10px] font-bold ${getScoreColor(Number(m.quality_score))}`}>Q {Number(m.quality_score).toFixed(0)}%</span>}
                                                                         {roleStr && <span className="inline-flex items-center gap-0.5 text-[10px] text-violet-400"><Briefcase size={9} />{roleStr}</span>}
                                                                     </div>
                                                                 </div>

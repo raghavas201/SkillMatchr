@@ -212,11 +212,11 @@ export default function JobDetailPage() {
                                                             <p className="text-xs text-muted-foreground">{formatDate(m.uploaded_at)}</p>
                                                         </div>
                                                         <div className="flex items-center gap-3 text-xs">
-                                                            {m.ats_score !== undefined && (
-                                                                <span className={`font-bold ${getScoreColor(m.ats_score)}`}>ATS {m.ats_score?.toFixed(0)}%</span>
+                                                            {m.ats_score != null && (
+                                                                <span className={`font-bold ${getScoreColor(Number(m.ats_score))}`}>ATS {Number(m.ats_score).toFixed(0)}%</span>
                                                             )}
-                                                            {m.quality_score !== undefined && (
-                                                                <span className={`font-bold ${getScoreColor(m.quality_score)}`}>Q {m.quality_score?.toFixed(0)}%</span>
+                                                            {m.quality_score != null && (
+                                                                <span className={`font-bold ${getScoreColor(Number(m.quality_score))}`}>Q {Number(m.quality_score).toFixed(0)}%</span>
                                                             )}
                                                             <Link href={`/resumes/${m.resume_id}`}
                                                                 className="flex items-center gap-0.5 text-primary hover:underline"

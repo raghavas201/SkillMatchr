@@ -169,18 +169,18 @@ export default function ResumesPage() {
 
                                 {/* Scores */}
                                 <div className="hidden md:flex items-center gap-4">
-                                    {typeof resume.ats_score === 'number' && !isNaN(resume.ats_score) && (
+                                    {resume.ats_score != null && (
                                         <div className="text-center">
-                                            <p className={`text-sm font-bold ${getScoreColor(resume.ats_score)}`}>
-                                                {resume.ats_score.toFixed(0)}%
+                                            <p className={`text-sm font-bold ${getScoreColor(Number(resume.ats_score))}`}>
+                                                {Number(resume.ats_score).toFixed(0)}%
                                             </p>
                                             <p className="text-[10px] text-muted-foreground">ATS</p>
                                         </div>
                                     )}
-                                    {typeof resume.quality_score === 'number' && !isNaN(resume.quality_score) && (
+                                    {resume.quality_score != null && (
                                         <div className="text-center">
-                                            <p className={`text-sm font-bold ${getScoreColor(resume.quality_score)}`}>
-                                                {resume.quality_score.toFixed(0)}%
+                                            <p className={`text-sm font-bold ${getScoreColor(Number(resume.quality_score))}`}>
+                                                {Number(resume.quality_score).toFixed(0)}%
                                             </p>
                                             <p className="text-[10px] text-muted-foreground">Quality</p>
                                         </div>
